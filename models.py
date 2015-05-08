@@ -18,24 +18,17 @@ from protorpc import messages
 from google.appengine.ext import ndb
 
 
-# replace your existing Profile class with this
+class ConflictException(endpoints.ServiceException):
+    """ConflictException -- exception mapped to HTTP 409 response"""
+    http_status = httplib.CONFLICT
+
+
 class Profile(ndb.Model):
     """Profile -- User profile object"""
     displayName = ndb.StringProperty()
     mainEmail = ndb.StringProperty()
     teeShirtSize = ndb.StringProperty(default='NOT_SPECIFIED')
     conferenceKeysToAttend = ndb.StringProperty(repeated=True)
-
-
-# needed for conference registration
-class BooleanMessage(messages.Message):
-    """BooleanMessage-- outbound Boolean value message"""
-    data = messages.BooleanField(1)
-
-
-class ConflictException(endpoints.ServiceException):
-    """ConflictException -- exception mapped to HTTP 409 response"""
-    http_status = httplib.CONFLICT
 
 
 class ProfileMiniForm(messages.Message):
@@ -49,25 +42,17 @@ class ProfileForm(messages.Message):
     displayName = messages.StringField(1)
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
+    conferenceKeysToAttend = messages.StringField(4, repeated=True)
 
 
-class TeeShirtSize(messages.Enum):
-    """TeeShirtSize -- t-shirt size enumeration value"""
-    NOT_SPECIFIED = 1
-    XS_M = 2
-    XS_W = 3
-    S_M = 4
-    S_W = 5
-    M_M = 6
-    M_W = 7
-    L_M = 8
-    L_W = 9
-    XL_M = 10
-    XL_W = 11
-    XXL_M = 12
-    XXL_W = 13
-    XXXL_M = 14
-    XXXL_W = 15
+class StringMessage(messages.Message):
+    """StringMessage-- outbound (single) string message"""
+    data = messages.StringField(1, required=True)
+
+
+class BooleanMessage(messages.Message):
+    """BooleanMessage-- outbound Boolean value message"""
+    data = messages.BooleanField(1)
 
 
 class Conference(ndb.Model):
@@ -105,6 +90,25 @@ class ConferenceForms(messages.Message):
     items = messages.MessageField(ConferenceForm, 1, repeated=True)
 
 
+class TeeShirtSize(messages.Enum):
+    """TeeShirtSize -- t-shirt size enumeration value"""
+    NOT_SPECIFIED = 1
+    XS_M = 2
+    XS_W = 3
+    S_M = 4
+    S_W = 5
+    M_M = 6
+    M_W = 7
+    L_M = 8
+    L_W = 9
+    XL_M = 10
+    XL_W = 11
+    XXL_M = 12
+    XXL_W = 13
+    XXXL_M = 14
+    XXXL_W = 15
+
+
 class ConferenceQueryForm(messages.Message):
     """ConferenceQueryForm -- Conference query inbound form message"""
     field = messages.StringField(1)
@@ -115,7 +119,3 @@ class ConferenceQueryForm(messages.Message):
 class ConferenceQueryForms(messages.Message):
     """ConferenceQueryForms -- multiple ConferenceQueryForm inbound form message"""
     filters = messages.MessageField(ConferenceQueryForm, 1, repeated=True)
-
-class StringMessage(messages.Message):
-    """StringMessage-- outbound (single) string message"""
-    data = messages.StringField(1, required=True)

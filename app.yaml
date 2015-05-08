@@ -30,10 +30,6 @@ handlers:       # static then dynamic
   upload: templates/index\.html
   secure: always
 
-- url: /_ah/spi/.*
-  script: conference.api
-  secure: always
-
 - url: /crons/set_announcement
   script: main.app
   login: admin
@@ -42,7 +38,14 @@ handlers:       # static then dynamic
   script: main.app
   login: admin
 
+- url: /_ah/spi/.*
+  script: conference.api
+  secure: always
+
 libraries:
+
+- name: webapp2
+  version: latest
 
 - name: endpoints
   version: latest
