@@ -90,6 +90,34 @@ class ConferenceForms(messages.Message):
     items = messages.MessageField(ConferenceForm, 1, repeated=True)
 
 
+# class Session(ndb.Model):
+#     """Session -- Session as part of a Conference."""
+#     name            = ndb.StringProperty(required=True)
+#     websafeKey      = ndb.StringProperty(required=True)
+#     highlights      = ndb.StringProperty()
+#     speakers        = ndb.StringProperty()
+#     duration        = ndb.IntegerProperty()
+#     typeOfSession   = ndb.StringProperty(default='NOT_SPECIFIED')
+#     date            = ndb.DateProperty()
+#     startTime       = ndb.TimeProperty()
+#     location        = ndb.StringProperty()
+
+
+class SessionForm(messages.Message):
+    name            = messages.StringField(1)
+    websafeKey      = messages.StringField(2)
+    highlights      = messages.StringField(3)
+    speakers        = messages.StringField(4)
+    duration        = messages.IntegerField(5)
+    # typeOfSession   = messages.EnumField('typeOfSession', 6)
+    date            = messages.StringField(7)
+    startTime       = messages.StringField(8)
+    location        = messages.StringField(9)
+    # The websafeKey contains the info of the entity and the parent and can
+    # be used to fully reconstitute the full id
+    websafeKey      = messages.StringField(10)
+
+
 class TeeShirtSize(messages.Enum):
     """TeeShirtSize -- t-shirt size enumeration value"""
     NOT_SPECIFIED = 1
@@ -107,6 +135,8 @@ class TeeShirtSize(messages.Enum):
     XXL_W = 13
     XXXL_M = 14
     XXXL_W = 15
+
+
 
 
 class ConferenceQueryForm(messages.Message):
