@@ -16,6 +16,7 @@ import httplib
 import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
+# from google.appengine.ext.ndb import msgprop
 
 
 class ConflictException(endpoints.ServiceException):
@@ -64,9 +65,9 @@ class Conference(ndb.Model):
     city            = ndb.StringProperty()
     startDate       = ndb.DateProperty()
     month           = ndb.IntegerProperty()
-    endDate         = ndb.DateProperty()
     maxAttendees    = ndb.IntegerProperty()
     seatsAvailable  = ndb.IntegerProperty()
+    endDate         = ndb.DateProperty()
 
 
 class ConferenceForm(messages.Message):
@@ -89,33 +90,33 @@ class ConferenceForms(messages.Message):
     """ConferenceForms -- multiple Conference outbound form message"""
     items = messages.MessageField(ConferenceForm, 1, repeated=True)
 
-
-# class Session(ndb.Model):
-#     """Session -- Session as part of a Conference."""
-#     name            = ndb.StringProperty(required=True)
-#     websafeKey      = ndb.StringProperty(required=True)
-#     highlights      = ndb.StringProperty()
-#     speakers        = ndb.StringProperty()
-#     duration        = ndb.IntegerProperty()
-#     typeOfSession   = ndb.StringProperty(default='NOT_SPECIFIED')
-#     date            = ndb.DateProperty()
-#     startTime       = ndb.TimeProperty()
-#     location        = ndb.StringProperty()
+class Session(ndb.Model):
+    """Session -- Session as part of a Conference."""
+    name            = ndb.StringProperty(required=True)
+    highlights      = ndb.StringProperty(repeated=True)
+    speakers        = ndb.StringProperty(repeated=True)
+    duration        = ndb.TimeProperty()
+    # Add typeOFSession as an enum property with by using the msgprop module.
+    # To perform queries on this field, indexed must be set to True.
+    # typeOfSession   = msgprop.EnumProperty(TypeOfSession, indexed=True)
+    typeOfSession   = ndb.StringProperty()
+    date            = ndb.DateProperty()
+    startTime       = ndb.TimeProperty()
+    location        = ndb.StringProperty()
 
 
 class SessionForm(messages.Message):
-    name            = messages.StringField(1)
-    websafeKey      = messages.StringField(2)
-    highlights      = messages.StringField(3)
-    speakers        = messages.StringField(4)
-    duration        = messages.IntegerField(5)
-    # typeOfSession   = messages.EnumField('typeOfSession', 6)
-    date            = messages.StringField(7)
-    startTime       = messages.StringField(8)
-    location        = messages.StringField(9)
+    name                    = messages.StringField(1)
+    highlights              = messages.StringField(2, repeated=True)
+    speakers                = messages.StringField(3)
+    duration                = messages.StringField(4)
+    typeOfSession           = messages.EnumField('TypeOfSession', 5)
+    date                    = messages.StringField(6)
+    startTime               = messages.StringField(7)
+    location                = messages.StringField(8)
     # The websafeKey contains the info of the entity and the parent and can
     # be used to fully reconstitute the full id
-    websafeKey      = messages.StringField(10)
+    websafeKey    = messages.StringField(9)
 
 
 class TeeShirtSize(messages.Enum):
@@ -137,6 +138,14 @@ class TeeShirtSize(messages.Enum):
     XXXL_W = 15
 
 
+class TypeOfSession(messages.Enum):
+    """ TypeOfSession -- session type enumeration value."""
+    NOT_SPECIFIED = 1
+    Workshop = 2
+    Lecture = 3
+    Keynote = 4
+    Information = 5
+    Networking = 6
 
 
 class ConferenceQueryForm(messages.Message):
