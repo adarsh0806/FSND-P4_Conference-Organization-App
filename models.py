@@ -126,6 +126,11 @@ class SessionForm(messages.Message):
     websafeKey    = messages.StringField(9)
 
 
+class SessionForms(messages.Message):
+    """SessionForms -- multiple Session outbound form messages"""
+    items = messages.MessageField(SessionForm, 1, repeated=True)
+
+
 class TeeShirtSize(messages.Enum):
     """TeeShirtSize -- t-shirt size enumeration value"""
     NOT_SPECIFIED = 1

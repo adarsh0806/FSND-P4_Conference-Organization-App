@@ -35,6 +35,7 @@ from models import ConferenceQueryForm
 from models import ConferenceQueryForms
 from models import Session
 from models import SessionForm
+from models import SessionForms
 from models import Speaker
 from models import TypeOfSession
 from models import BooleanMessage
@@ -91,6 +92,11 @@ CONF_GET_REQUEST = endpoints.ResourceContainer(
 
 CONF_POST_REQUEST = endpoints.ResourceContainer(
     ConferenceForm,
+    websafeConferenceKey=messages.StringField(1),
+)
+
+SESSION_GET_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
 )
 
@@ -261,6 +267,33 @@ class ConferenceApi(remote.Service):
         """ Creates a new session for a conference. """
         return self._createSessionObject(request)
 
+    @endpoints.method(SESSION_GET_REQUEST, SessionForms,
+                      path='getConferenceSessions/{websafeConferenceKey}',
+                      http_method='POST', name='getConferenceSessions')
+    def getConferenceSessions(self, request):
+        """Given a conference, return all sessions."""
+        # convert websafeKey to conference key
+        conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
+        # check that conference exists
+        if not conf:
+            raise endpoints.NotFoundException(
+                'No conference found with key: %s'
+                % request.websafeConferenceKey)
+
+        c_key = conf.key
+        print c_key
+        # create ancestor query for this user
+        sessions = Session.query(ancestor=c_key)
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in
+                   sessions]
+        )
+
+    # def getConferenceSessionsByType(websafeConferenceKey, typeOfSession):
+    #     """ Given a conference, return all sessions of a specified type (eg lecture, keynote, workshop)"""
+    # def getSessionsBySpeaker(speaker):
+    #     """-- Given a speaker, return all sessions given by this particular speaker, across all conferences"""
 
 # - - - Conference objects - - - - - - - - - - - - - - - - -
 
