@@ -90,11 +90,18 @@ class ConferenceForms(messages.Message):
     """ConferenceForms -- multiple Conference outbound form message"""
     items = messages.MessageField(ConferenceForm, 1, repeated=True)
 
+
+class Speaker(ndb.Model):
+    """Speaker -- A Speaker can speak at multiple conferences."""
+    name = ndb.StringProperty(required=True)
+
+
 class Session(ndb.Model):
     """Session -- Session as part of a Conference."""
     name            = ndb.StringProperty(required=True)
     highlights      = ndb.StringProperty(repeated=True)
-    speakers        = ndb.StringProperty(repeated=True)
+    # A session can have multiple speaker entities/kinds.
+    speakers        = ndb.KeyProperty(kind=Speaker, repeated=True)
     duration        = ndb.TimeProperty()
     # Add typeOFSession as an enum property with by using the msgprop module.
     # To perform queries on this field, indexed must be set to True.
@@ -108,7 +115,7 @@ class Session(ndb.Model):
 class SessionForm(messages.Message):
     name                    = messages.StringField(1)
     highlights              = messages.StringField(2, repeated=True)
-    speakers                = messages.StringField(3)
+    speakers                = messages.StringField(3, repeated=True)
     duration                = messages.StringField(4)
     typeOfSession           = messages.EnumField('TypeOfSession', 5)
     date                    = messages.StringField(6)

@@ -35,6 +35,7 @@ from models import ConferenceQueryForm
 from models import ConferenceQueryForms
 from models import Session
 from models import SessionForm
+from models import Speaker
 from models import TypeOfSession
 from models import BooleanMessage
 from models import ConflictException
@@ -112,7 +113,14 @@ class ConferenceApi(remote.Service):
 # - - - Session  objects - - - - - - - - - - - - - - - - - -
 
     def _copySessionToForm(self, sess):
-        """Copy relevant fields from Session to SessionForm."""
+        """Copy relevant fields from Session to SessionForm.
+
+        args:
+            sess: Session entity.
+
+        returns:
+            sf: SessionForm Message.
+        """
         # copy relevant fields from Session to SessionForm
         sf = SessionForm()
         for field in sf.all_fields():
@@ -130,6 +138,10 @@ class ConferenceApi(remote.Service):
                 # convert startTime to time string;
                 elif field.name.endswith('duration'):
                     setattr(sf, field.name, str(getattr(sess, field.name)))
+                # convert list of Speaker keys to list of strings:
+                elif field.name.endswith('speakers'):
+                    setattr(sf, field.name,
+                            [str(s.get().name) for s in sess.speakers])
                 # just copy other fields
                 else:
                     setattr(sf, field.name, getattr(sess, field.name))
@@ -199,6 +211,33 @@ class ConferenceApi(remote.Service):
         if data['duration']:
             data['duration'] = datetime.strptime(data['duration'][:5],
                                                  "%H:%M").time()
+        # convert speakers from a list of strings to a list of Speaker entity
+        # keys
+        if data['speakers']:
+            # query all existing/known speakers
+            qryKnownSpeakers = Speaker.query()
+            # write the names of the known speakers in a list
+            knownSpeakers = []
+            for ks in qryKnownSpeakers:
+                knownSpeakers.append(ks.name)
+            # go through the provided speaker list of the request. When speaker
+            # is unknown, get a new Speaker ID, use it to create a new Speaker
+            # entity and write it to the database. Otherwise, just retrieve the
+            # key.
+            # NOTE: For simplification, it is assumed that a name uniquely
+            # identifies a speaker.
+            sessionSpeakers = []
+            for speaker in data['speakers']:
+                if speaker not in knownSpeakers:
+                    spk_id = Speaker.allocate_ids(size=1)[0]
+                    spk = Speaker(name=speaker, id=spk_id)
+                    spk_key = spk.put()
+                else:
+                    spk_key = Speaker.query(Speaker.name == speaker).get().key
+                # Add Speaker key to the list of sessionSpeakers.
+                sessionSpeakers.append(spk_key)
+            # overwrite data['speakers'] with the new created key list.
+            data['speakers'] = sessionSpeakers
 
         # make Conference Key from websafeConferenceKey
         c_key = ndb.Key(urlsafe=request.websafeConferenceKey)
@@ -209,33 +248,17 @@ class ConferenceApi(remote.Service):
         # add key into dictionary
         data['key'] = s_key
 
-        # add to the SessionForm object as an urlsafe string
-        # sform.websafeKey = s_key.urlsafe()
-
-        # data['SpeakerUserId'] = request.organizerUserId = user_id
-
-        # create Session, send email to Speaker confirming
-        # creation of Session & return (modified) SessionForm
+        # create Session
         Session(**data).put()
-
-        # return sform
+        # get session to copy it back to the form as return
         sess = s_key.get()
-
-        print "******** DONE UNTIL HERE!!! ************"
-        print "Conference Name: " + str(conf.name)
-        print data['date']
-        print data['startTime']
-        print data['duration']
-        print sess
-        print "****************************************"
-
         return self._copySessionToForm(sess)
 
     @endpoints.method(SESSION_POST_REQUEST, SessionForm,
                       path='session/{websafeConferenceKey}',
                       http_method='POST', name='createSession')
     def createSession(self, request):
-        """open only to the organizer of the conference"""
+        """ Creates a new session for a conference. """
         return self._createSessionObject(request)
 
 
