@@ -37,6 +37,7 @@ from models import Session
 from models import SessionForm
 from models import SessionForms
 from models import Speaker
+from models import SpeakerForm
 from models import TypeOfSession
 from models import BooleanMessage
 from models import ConflictException
@@ -98,6 +99,11 @@ CONF_POST_REQUEST = endpoints.ResourceContainer(
 SESSION_GET_REQUEST = endpoints.ResourceContainer(
     message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
+)
+
+SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
+    typeOfSession=messages.EnumField(TypeOfSession, 1),
+    websafeConferenceKey=messages.StringField(2),
 )
 
 SESSION_POST_REQUEST = endpoints.ResourceContainer(
@@ -260,18 +266,16 @@ class ConferenceApi(remote.Service):
         sess = s_key.get()
         return self._copySessionToForm(sess)
 
-    @endpoints.method(SESSION_POST_REQUEST, SessionForm,
-                      path='session/{websafeConferenceKey}',
-                      http_method='POST', name='createSession')
-    def createSession(self, request):
-        """ Creates a new session for a conference. """
-        return self._createSessionObject(request)
+    def _getConferenceSessions(self, request):
+        """ Given a conference, return all its sessions.
 
-    @endpoints.method(SESSION_GET_REQUEST, SessionForms,
-                      path='getConferenceSessions/{websafeConferenceKey}',
-                      http_method='POST', name='getConferenceSessions')
-    def getConferenceSessions(self, request):
-        """Given a conference, return all sessions."""
+        args:
+            request: request object containing only a websafeConferenceKey
+                which uniquely identifies a conference.
+        returns:
+            sessions: query result set with all sessions related to the
+                provided conference key.
+        """
         # convert websafeKey to conference key
         conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
         # check that conference exists
@@ -279,21 +283,92 @@ class ConferenceApi(remote.Service):
             raise endpoints.NotFoundException(
                 'No conference found with key: %s'
                 % request.websafeConferenceKey)
-
+        # get the conference key
         c_key = conf.key
-        print c_key
         # create ancestor query for this user
         sessions = Session.query(ancestor=c_key)
+        return sessions
+
+    @endpoints.method(SESSION_POST_REQUEST, SessionForm,
+                      path='session/{websafeConferenceKey}',
+                      http_method='POST', name='createSession')
+    def createSession(self, request):
+        """ Creates a new session for a conference."""
+        return self._createSessionObject(request)
+
+    @endpoints.method(SESSION_GET_REQUEST, SessionForms,
+                      path='getConferenceSessions/{websafeConferenceKey}',
+                      http_method='GET', name='getConferenceSessions')
+    def getConferenceSessions(self, request):
+        """Given a conference, return all sessions."""
+        sessions = self._getConferenceSessions(request)
         # return set of SessionForm objects per Session
         return SessionForms(
             items=[self._copySessionToForm(sess) for sess in
                    sessions]
         )
 
-    # def getConferenceSessionsByType(websafeConferenceKey, typeOfSession):
-    #     """ Given a conference, return all sessions of a specified type (eg lecture, keynote, workshop)"""
-    # def getSessionsBySpeaker(speaker):
-    #     """-- Given a speaker, return all sessions given by this particular speaker, across all conferences"""
+    @endpoints.method(
+        SESSION_BY_TYPE_GET_REQUEST, SessionForms,
+        path='getConferenceSessionsByType/{websafeConferenceKey}',
+        http_method='POST', name='getConferenceSessionsByType')
+    def getConferenceSessionsByType(self, request):
+        """ Given a conference, return all sessions of a specified type."""
+        sessions = self._getConferenceSessions(request)
+        # filter by requested typeOfSession
+        sessions = sessions.filter(
+            Session.typeOfSession == str(request.typeOfSession))
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in
+                   sessions]
+        )
+
+    @endpoints.method(SpeakerForm, SessionForms,
+                      path='getSessionsBySpeaker',
+                      http_method='GET', name='getSessionsBySpeaker')
+    def getSessionsBySpeaker(self, request):
+        """ Return all sessions given by a particular speaker.
+
+        args:
+            SpeakerForm: SpeakerForm object with speakers name.
+
+        returns:
+            SessesionForms: A set of SessionForm objects per session given by
+                the requested speaker.
+        """
+
+        if not request.name:
+            raise endpoints.BadRequestException("Speaker 'name' field \
+                required")
+
+        # create a new Speaker.key
+        spk_key = Speaker().key
+        # query all existing/known speakers
+        qryKnownSpeakers = Speaker.query()
+        # write the names of the known speakers in a list
+        knownSpeakers = []
+        for ks in qryKnownSpeakers:
+            knownSpeakers.append(ks.name)
+        # If speaker doesn't exist, raise an "Not Found"-exception.
+        if request.name not in knownSpeakers:
+            raise endpoints.NotFoundException(
+                'No speaker found with name: %s'
+                % request.name)
+        # Else return its key.
+        # NOTE: For simplification, it is assumed that a name uniquely
+        # identifies a speaker.
+        else:
+            spk_key = Speaker.query(Speaker.name == request.name).get().key
+
+        # create query for all session by provided speaker
+        sessions = Session.query(Session.speakers == spk_key)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in
+                   sessions]
+        )
 
 # - - - Conference objects - - - - - - - - - - - - - - - - -
 

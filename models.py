@@ -96,6 +96,11 @@ class Speaker(ndb.Model):
     name = ndb.StringProperty(required=True)
 
 
+class SpeakerForm(messages.Message):
+    """SpeakerForm -- Speaker outbound form messages"""
+    name = messages.StringField(1)
+
+
 class Session(ndb.Model):
     """Session -- Session as part of a Conference."""
     name            = ndb.StringProperty(required=True)
@@ -113,6 +118,7 @@ class Session(ndb.Model):
 
 
 class SessionForm(messages.Message):
+    """SessionForm -- Session outbound form messages"""
     name                    = messages.StringField(1)
     highlights              = messages.StringField(2, repeated=True)
     speakers                = messages.StringField(3, repeated=True)
