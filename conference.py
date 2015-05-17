@@ -7,10 +7,12 @@ conference.py -- Udacity conference server-side Python App Engine API;
 $Id: conference.py,v 1.25 2014/05/24 23:42:19 wesc Exp wesc $
 
 created by wesc on 2014 apr 21
+extended by Norbert Stüken on 2015 may 17
 
 """
 
 __author__ = 'wesc+api@google.com (Wesley Chun)'
+__author__ = 'norbert.stueken@gmail.com'
 
 
 from datetime import datetime
@@ -125,7 +127,7 @@ class ConferenceApi(remote.Service):
 # - - - Session  objects - - - - - - - - - - - - - - - - - -
 
     def _copySessionToForm(self, sess):
-        """Copy relevant fields from Session to SessionForm.
+        """Copies relevant fields from a Session to a SessionForm.
 
         args:
             sess: Session entity.
@@ -163,7 +165,7 @@ class ConferenceApi(remote.Service):
         return sf
 
     def _createSessionObject(self, request):
-        """Creates Session object and returns an altered SessionForm object.
+        """Creates a Session and returns an altered SessionForm object.
 
         args:
             request: Combined Container of a SessionForm object and a
@@ -328,15 +330,7 @@ class ConferenceApi(remote.Service):
                       path='getSessionsBySpeaker',
                       http_method='GET', name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
-        """ Return all sessions given by a particular speaker.
-
-        args:
-            SpeakerForm: SpeakerForm object with speakers name.
-
-        returns:
-            SessesionForms: A set of SessionForm objects per session given by
-                the requested speaker.
-        """
+        """ Returns all sessions given by a particular speaker."""
 
         if not request.name:
             raise endpoints.BadRequestException("Speaker 'name' field \
