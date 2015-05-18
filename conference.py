@@ -97,6 +97,12 @@ CONF_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+# container only used to show city and not field for the request in
+# API Explorer
+CONF_IN_CITY_REQUEST = endpoints.ResourceContainer(
+    city=messages.StringField(1)
+)
+
 SESSION_GET_REQUEST = endpoints.ResourceContainer(
     message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
@@ -117,6 +123,10 @@ WISHLIST_POST_REQUEST = endpoints.ResourceContainer(
     websafeSessionKey=messages.StringField(1)
 )
 
+SESSION_BY_SPK_AND_CONF_GET_REQUEST = endpoints.ResourceContainer(
+    SpeakerForm,
+    websafeConferenceKey=messages.StringField(1)
+)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -295,6 +305,33 @@ class ConferenceApi(remote.Service):
         sessions = Session.query(ancestor=c_key)
         return sessions
 
+    def _getSpeakerKey(self, request):
+        """ Returns the key for a requested speaker, when he exists."""
+
+        if not request.name:
+            raise endpoints.BadRequestException("Speaker 'name' field \
+                required")
+
+        # create a new Speaker.key
+        spk_key = Speaker().key
+        # query all existing/known speakers
+        qryKnownSpeakers = Speaker.query()
+        # write the names of the known speakers in a list
+        knownSpeakers = []
+        for ks in qryKnownSpeakers:
+            knownSpeakers.append(ks.name)
+        # If speaker doesn't exist, raise an "Not Found"-exception.
+        if request.name not in knownSpeakers:
+            raise endpoints.NotFoundException(
+                'No speaker found with name: %s'
+                % request.name)
+        # Else return its key.
+        # NOTE: For simplification, it is assumed that a name uniquely
+        # identifies a speaker.
+        else:
+            spk_key = Speaker.query(Speaker.name == request.name).get().key
+        return spk_key
+
     @endpoints.method(SESSION_POST_REQUEST, SessionForm,
                       path='session/{websafeConferenceKey}',
                       http_method='POST', name='createSession')
@@ -335,37 +372,32 @@ class ConferenceApi(remote.Service):
                       http_method='GET', name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
         """ Returns all sessions given by a particular speaker."""
-
-        if not request.name:
-            raise endpoints.BadRequestException("Speaker 'name' field \
-                required")
-
-        # create a new Speaker.key
-        spk_key = Speaker().key
-        # query all existing/known speakers
-        qryKnownSpeakers = Speaker.query()
-        # write the names of the known speakers in a list
-        knownSpeakers = []
-        for ks in qryKnownSpeakers:
-            knownSpeakers.append(ks.name)
-        # If speaker doesn't exist, raise an "Not Found"-exception.
-        if request.name not in knownSpeakers:
-            raise endpoints.NotFoundException(
-                'No speaker found with name: %s'
-                % request.name)
-        # Else return its key.
-        # NOTE: For simplification, it is assumed that a name uniquely
-        # identifies a speaker.
-        else:
-            spk_key = Speaker.query(Speaker.name == request.name).get().key
-
+        # get key of requested speaker
+        spk_key = self._getSpeakerKey(request)
         # create query for all session by provided speaker
         sessions = Session.query(Session.speakers == spk_key)
-
         # return set of SessionForm objects per Session
         return SessionForms(
             items=[self._copySessionToForm(sess) for sess in
                    sessions]
+        )
+
+    @endpoints.method(
+        SESSION_BY_SPK_AND_CONF_GET_REQUEST, SessionForms,
+        path='getConferenceSessionsBySpeaker',
+        http_method='POST', name='getConferenceSessionsBySpeaker')
+    def getConferenceSessionsBySpeaker(self, request):
+        """ Returns all conference sessions of a given speaker."""
+        # get all sessions of requested conference
+        conf_sessions = self._getConferenceSessions(request)
+        # get key of requested speaker
+        spk_key = self._getSpeakerKey(request)
+        # filter conf_sessions for all sessions by provided speaker
+        conf_session_by_spk = conf_sessions.filter(Session.speakers == spk_key)
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in
+                   conf_session_by_spk]
         )
 
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
@@ -664,6 +696,24 @@ class ConferenceApi(remote.Service):
                                names[conf.organizerUserId]) for conf in
                                conferences])
 
+    @endpoints.method(CONF_IN_CITY_REQUEST, ConferenceForms,
+                      path='getConferencesInCity',
+                      http_method='POST', name='getConferencesInCity')
+    def getConferencesInCity(self, request):
+        """ Returns all conferences in a certain city."""
+        # check if city name is given
+        if not request.city:
+            raise endpoints.BadRequestException("Conference 'city' field \
+                required")
+        # get all conferences, filter the conference by the requested city and
+        # order them by name.
+        confsInCity = Conference.query().filter(
+            Conference.city == request.city).order(Conference.name)
+        # return set of SessionForm objects per Session
+        return ConferenceForms(
+            items=[self._copyConferenceToForm(conf, None) for conf in
+                   confsInCity]
+        )
 
 # - - - Profile objects - - - - - - - - - - - - - - - - - - -
 
@@ -882,11 +932,15 @@ class ConferenceApi(remote.Service):
         # f = ndb.query.FilterNode(field, operator, value)
         # q = q.filter(f)
         q = q.filter(Conference.topics == "Medical Innovations")
-        # order by converence name
+
+        # the first sort property must be the same as the property to which the
+        # inequality filter is applied.
+        q = q.order(Conference.maxAttendees)
+        q = q.filter(Conference.maxAttendees > 10)
+        # order by conference name
         q = q.order(Conference.name)
         # filter for June
         q = q.filter(Conference.month == 6)
-        q = q.filter(Conference.maxAttendees > 10)
 
         return ConferenceForms(
             items=[self._copyConferenceToForm(conf, "") for conf in q]

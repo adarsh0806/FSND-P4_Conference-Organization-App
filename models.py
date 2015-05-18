@@ -100,7 +100,7 @@ class Speaker(ndb.Model):
 
 class SpeakerForm(messages.Message):
     """SpeakerForm -- Speaker form messages"""
-    name = messages.StringField(1)
+    name = messages.StringField(1, required=True)
 
 
 class Session(ndb.Model):
