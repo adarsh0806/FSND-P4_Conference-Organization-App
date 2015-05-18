@@ -7,8 +7,7 @@ conference.py -- Udacity conference server-side Python App Engine API;
 $Id: conference.py,v 1.25 2014/05/24 23:42:19 wesc Exp wesc $
 
 created by wesc on 2014 apr 21
-extended by Norbert Stüken on 2015 may 17
-
+extended by Norbert Stueken on 2015 may 17
 """
 
 __author__ = 'wesc+api@google.com (Wesley Chun)'
@@ -111,6 +110,11 @@ SESSION_BY_TYPE_GET_REQUEST = endpoints.ResourceContainer(
 SESSION_POST_REQUEST = endpoints.ResourceContainer(
     SessionForm,
     websafeConferenceKey=messages.StringField(1),
+)
+
+WISHLIST_POST_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    websafeSessionKey=messages.StringField(1)
 )
 
 
@@ -363,6 +367,53 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(sess) for sess in
                    sessions]
         )
+
+    @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
+                      path='addSessionToWishlist',
+                      http_method='POST', name='addSessionToWishlist')
+    def addSessionToWishlist(self, request):
+        """ Add a given session to the users Wishlist. """
+        onList = None
+        prof = self._getProfileFromUser()  # get user Profile
+
+        # check if session exists already on the wishlist
+        # given the websafeSessionKey
+        wssk = request.websafeSessionKey
+        sess = ndb.Key(urlsafe=wssk).get()
+        if not sess:
+            raise endpoints.NotFoundException(
+                'No session found with key: %s' % wssk)
+
+        # check if session is already on the user wishlist
+        if wssk in prof.sessionsKeysOnWishlist:
+            raise ConflictException(
+                "This session is already on your wishlist.")
+
+        # add session to withlist
+        prof.sessionsKeysOnWishlist.append(wssk)
+        onList = True
+
+        # write added session back to the datastore & return
+        prof.put()
+        return BooleanMessage(data=onList)
+
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+                      path='getSessionsInWishlist',
+                      http_method='GET', name='getSessionsInWishlist')
+    def getSessionsInWishlist(self, request):
+        """Get list of sessions that user has put in his wishlist."""
+        prof = self._getProfileFromUser()  # get user profile
+        # get sessionsKeysOnWishlist from profile.
+        sess_keys = [ndb.Key(urlsafe=wssk) for wssk in
+                     prof.sessionsKeysOnWishlist]
+        # fetch sessions from datastore.
+        # Use of get_multi(array_of_keys) to fetch all keys at once instead of
+        # fetching them one by one.
+        sessions = ndb.get_multi(sess_keys)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(items=[self._copySessionToForm(sess) for sess in
+                            sessions])
 
 # - - - Conference objects - - - - - - - - - - - - - - - - -
 
@@ -816,11 +867,6 @@ class ConferenceApi(remote.Service):
     def unregisterFromConference(self, request):
         """Unregister user for selected conference."""
         return self._conferenceRegistration(request, reg=False)
-
-
-
-
-
 
     @endpoints.method(message_types.VoidMessage, ConferenceForms,
                       path='filterPlayground', http_method='GET',
