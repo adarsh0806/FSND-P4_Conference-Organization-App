@@ -61,7 +61,31 @@ The following methods have been implemented for the wishlist to work:
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 
 ## Additional added queries in endpoint methods
-- getConferenceSessionsBySpeaker: This method queries 
+- getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
+- getConferencesInCity: This method queries all conferences in a certain city.
+
+## Solving a query related problem
+Question: Let’s say that you don't like workshops and you don't like sessions after 7 pm. How would you handle a query for all non-workshop sessions before 7 pm? What is the problem for implementing this query? What ways to solve it did you think of?
+
+Answer: The query would need to filter using two inequality filterss. First, all sessions '!=' Workshop, second, all sessions <= 7 pm. However, using inequalities for multiple properties is [disallowed in Datastore][7].
+
+Proposed Solutions:
+1. Use only one inequality filter for time and then filter for all type of sessions which are liked using the IN operator on a limited set of the remaining five session types.
+2. Use two queries with one inequality filter each and combine the results.
+3. Use only one inequality filter for time and filter out the other property in memory.
+
+Implemented Solution:
+As the amount of possible typeOfSession values is very limited, I decided to implemt the first proposed solution. Furthermore, it uses only available Datastore operators and is probably the most straightforward solution as well:
+
+	q = Session.query(ndb.AND(
+	                  Session.typeOfSession.IN(["NOT_SPECIFIED", "Lecture",
+	                                            "Keynote", "Information",
+	                                            "Networking"]),
+	                  Session.startTime <= datetime.strptime(
+	                    "7:00 pm", "%I:%M %p").time()))
+
+The whole endpoints method is implemented as 'solutionToQueryProblem'.
+
 
 
 [1]: https://developers.google.com/appengine
@@ -70,3 +94,4 @@ The following methods have been implemented for the wishlist to work:
 [4]: https://console.developers.google.com/
 [5]: https://localhost:8080/
 [6]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
+[7]: https://cloud.google.com/appengine/docs/python/ndb/queries

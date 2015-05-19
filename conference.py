@@ -447,6 +447,27 @@ class ConferenceApi(remote.Service):
         return SessionForms(items=[self._copySessionToForm(sess) for sess in
                             sessions])
 
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+                      path='solutionToQueryProblem', http_method='GET',
+                      name='solutionToQueryProblem')
+    def solutionToQueryProblem(self, request):
+        """Solution to the inequality filter limitation to one property."""
+        # The following doesn't work as two inequality filters are used:
+        # q = Session.query(ndb.AND(
+        #     Session.typeOfSession != "Workshop", Session.startTime <= time))
+
+        q = Session.query(ndb.AND(
+                          Session.typeOfSession.IN(["NOT_SPECIFIED", "Lecture",
+                                                    "Keynote", "Information",
+                                                    "Networking"]),
+                          Session.startTime <= datetime.strptime(
+                            "7:00 pm", "%I:%M %p").time()))
+
+        return SessionForms(
+            items=[self._copySessionToForm(sess) for sess in q]
+        )
+
+
 # - - - Conference objects - - - - - - - - - - - - - - - - -
 
     def _copyConferenceToForm(self, conf, displayName):
@@ -711,7 +732,7 @@ class ConferenceApi(remote.Service):
             Conference.city == request.city).order(Conference.name)
         # return set of SessionForm objects per Session
         return ConferenceForms(
-            items=[self._copyConferenceToForm(conf, None) for conf in
+            items=[self._copyConferenceToForm(conf, "") for conf in
                    confsInCity]
         )
 
