@@ -9,7 +9,7 @@ Conference Organization Application Using Googles App Engine.
 ## APIs
 - [Google Cloud Endpoints][3]
 
-## Setup and Testing Instructions
+## Setup Instructions
 1. Update the value of `application` in `app.yaml` to the app ID you
    have registered in the App Engine admin console and would like to use to host
    your instance of this sample.
@@ -21,13 +21,16 @@ Conference Organization Application Using Googles App Engine.
    `$ git update-index --assume-unchanged app.yaml settings.py static/js/app.js`
 5. Run the app with the devserver using `dev_appserver.py DIR`, and ensure it's running by visiting
    your local server's address (by default [localhost:8080][5].)
-
 6. Generate your client library(ies) with [the endpoints tool][6].
 7. Deploy your application by typing 'appcfg.py update DIR'. When successful, you can access your application
    by visiting 'https://APPID.appspot.com'.
-8. As the added endpoints methods are only usable in the API explorer yet, visit 'https://APPID.appspot.com/_ah/api/explorer/', click on your endpoints API and chose the method you want to test. To get a valid websafeConferenceKey, copy it from the url on any conference detail page. To get a valid sessionConferenceKey, copy the websafeKey from the response of the getConferenceSessions-method. 
 
-## Explanation of the design choices for the Sessions, Speaker and Wishlist implementations as added features of the conference application.
+## Testing Instructions
+To access the conference application, visit 'https://conference-api.appspot.com'.
+As the added endpoints methods are only usable in the API explorer yet, visit 'https://conference-api.appspot.com/_ah/api/explorer/', click on the conference API and chose the method you want to test. To get a valid websafeConferenceKey, copy it from the url on any conference detail page. To get a valid sessionConferenceKey, copy the websafeKey from the response of the getConferenceSessions-method. 
+
+## Answers and Described Solutions to the Project Tasks
+## Task 1 & 2: Explanation of the design choices for the Sessions, Speaker and Wishlist implementations as added features of the conference application.
 The Session kind has been designed with the following properties:
  	- name: StringProperty and the only required field.
  	- highlights: Repeated StringProperty as there can be multiple highlights per Session.
@@ -60,6 +63,7 @@ The following methods have been implemented for the wishlist to work:
 - addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method, only more simple as this method doesn't need to be transactional.
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 
+## Task 3
 ## Additional added queries in endpoint methods
 - getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
 - getConferencesInCity: This method queries all conferences in a certain city.
@@ -86,6 +90,10 @@ As the amount of possible typeOfSession values is very limited, I decided to imp
 
 The whole endpoints method is implemented as 'solutionToQueryProblem'.
 
+## Task 4: Add a Task
+For this a new task is added to the default taskqueue after a session is created. In the executed method 'CheckSpeakers' of the main.py module, all sessions of the same conference are checked if a speaker holds more than one session at the conference. If this is the case, the speaker gets marked as featured and a new Memcache entry is created (or the existing one is overridden) listing all featured speakers and their session on this conference.
+
+The endpoints method 'getFeaturedSpeaker' takes in a websafeConferenceKey as an argument and returns the respective Memcache entry with the featured speakers and sessions.
 
 
 [1]: https://developers.google.com/appengine

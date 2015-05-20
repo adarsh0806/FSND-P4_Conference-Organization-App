@@ -280,6 +280,12 @@ class ConferenceApi(remote.Service):
         Session(**data).put()
         # get session to copy it back to the form as return
         sess = s_key.get()
+
+        # convert session key into an urlsafe string
+        s_key_str = s_key.urlsafe()
+        # add task to queue to check the speakers of the conference
+        taskqueue.add(params={'s_key_str': s_key_str},
+                      url='/tasks/check_speakers')
         return self._copySessionToForm(sess)
 
     def _getConferenceSessions(self, request):
@@ -735,6 +741,15 @@ class ConferenceApi(remote.Service):
             items=[self._copyConferenceToForm(conf, "") for conf in
                    confsInCity]
         )
+
+    @endpoints.method(CONF_GET_REQUEST, StringMessage,
+                      path='conference/featured/get',
+                      http_method='GET', name='getFeaturedSpeaker')
+    def getFeaturedSpeaker(self, request):
+        """Return featured speakers and their sessions from memcache."""
+        MEMCACHE_CONFERENCE_KEY = request.websafeConferenceKey
+        return StringMessage(data=memcache.get(
+            MEMCACHE_CONFERENCE_KEY) or "No featured speakers.")
 
 # - - - Profile objects - - - - - - - - - - - - - - - - - - -
 

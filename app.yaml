@@ -38,6 +38,10 @@ handlers:       # static then dynamic
   script: main.app
   login: admin
 
+- url: /tasks/check_speakers
+  script: main.app
+  login: admin
+
 - url: /_ah/spi/.*
   script: conference.api
   secure: always
