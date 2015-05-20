@@ -32,40 +32,40 @@ As the added endpoints methods are only usable in the API explorer yet, visit 'h
 
 # Task 1 & 2: Explanation of the design choices for Sessions, Speaker and Wishlist.
 The Session kind has been designed with the following properties:
- - name: StringProperty and the only required field.
- - highlights: Repeated StringProperty as there can be multiple highlights per Session.
- - speakers: Repeated KeyProperty of kind Speakers, as there can be multiple Speakers per Session as well.
- - duration, startTime and date: TimeProperty respectively DateProperty properties.
- - typeOfSession and location: StringProperties.
- As a session is created as a child of a given conference which key is included in the key of the session, it doesn't need to hold a separate conference property as in a relational database. 
+- name: StringProperty and the only required field.
+- highlights: Repeated StringProperty as there can be multiple highlights per Session.
+- speakers: Repeated KeyProperty of kind Speakers, as there can be multiple Speakers per Session as well.
+- duration, startTime and date: TimeProperty respectively DateProperty properties.
+- typeOfSession and location: StringProperties.
+As a session is created as a child of a given conference which key is included in the key of the session, it doesn't need to hold a separate conference property as in a relational database. 
 
- A session object is created using the SessionForm Message class, basically consisting of string fields. Only typeOfSession is implemented as an EnumField as there are limited values to chose from. When an existing Session entity is requested, the message field 'websafeKey' contains an urlsafe string which can be easily converted back to the original key to uniquely identify the session.
+A session object is created using the SessionForm Message class, basically consisting of string fields. Only typeOfSession is implemented as an EnumField as there are limited values to chose from. When an existing Session entity is requested, the message field 'websafeKey' contains an urlsafe string which can be easily converted back to the original key to uniquely identify the session.
 
- To output multiple SessionForm objects, the SessionsForms Message class is used.
+To output multiple SessionForm objects, the SessionsForms Message class is used.
 
- The Speaker kind is a simple class containing only the name of the speaker as required property. To simplify the use of the API Explorer in this project, the Speaker name is used as a unique identifier and form input and not an unique ID as it should be done in a professional project.
+The Speaker kind is a simple class containing only the name of the speaker as required property. To simplify the use of the API Explorer in this project, the Speaker name is used as a unique identifier and form input and not an unique ID as it should be done in a professional project.
 
- The SpeakerForm Message class is used to input a speaker for the getSessionsBySpeaker-Method.
+The SpeakerForm Message class is used to input a speaker for the getSessionsBySpeaker-Method.
 
- To make use of the new Session and Speaker kinds, the following endpoints and private methods have been implemented. The private methods are used by the endpoints methods, but are not publicly available through the API.
- - createSession: Creates a new session for a conference.
- - getConferenceSessions: Given a conference, return all sessions.
- - getConferenceSessionsByType: Given a conference, return all sessions of a specified type.
- - getSessionsBySpeaker: Returns all sessions given by a particular speaker.
- - _copySessionToForm: Copies relevant fields from a Session to a SessionForm. Implemented as a separate mehthod since used by multiple methods (_createSessionObject, getConferenceSessions and getConferenceSessionsByType) to limit redundancy.
- - _createSessionObject: Creates a Session and returns an altered SessionForm object. In order to create a session, you need to be the creator of the conference and logged in respectively.
- - _getConferenceSessions: Given a conference, return all its sessions. Implemented as separate method as used by multiple endpoints methods (getConferenceSessions and getConferenceSessionsByType) to limit redundancy.
- - _getSpeakerKey: Returns the key for a requested speaker, when he exists. Implemented as separate method as used by multiple endpoints mehtods (getSessionsBySpeaker and getConferenceSessionsBySpeaker (see additional queries/methods below)).
+To make use of the new Session and Speaker kinds, the following endpoints and private methods have been implemented. The private methods are used by the endpoints methods, but are not publicly available through the API.
+- createSession: Creates a new session for a conference.
+- getConferenceSessions: Given a conference, return all sessions.
+- getConferenceSessionsByType: Given a conference, return all sessions of a specified type.
+- getSessionsBySpeaker: Returns all sessions given by a particular speaker.
+- _copySessionToForm: Copies relevant fields from a Session to a SessionForm. Implemented as a separate mehthod since used by multiple methods (_createSessionObject, getConferenceSessions and getConferenceSessionsByType) to limit redundancy.
+- _createSessionObject: Creates a Session and returns an altered SessionForm object. In order to create a session, you need to be the creator of the conference and logged in respectively.
+- _getConferenceSessions: Given a conference, return all its sessions. Implemented as separate method as used by multiple endpoints methods (getConferenceSessions and getConferenceSessionsByType) to limit redundancy.
+- _getSpeakerKey: Returns the key for a requested speaker, when he exists. Implemented as separate method as used by multiple endpoints mehtods (getSessionsBySpeaker and getConferenceSessionsBySpeaker (see additional queries/methods below)).
 
 As the wishlist is only a list of session keys, it doesn't need to be an own kind and can be attached to the user profile as an additional property. Furthermore, the wishlist is open to all conferences and not only the ones which the user is registered to attend. For me, this makes more sense as I could decide to register for a conference based on the sessions in my wishlist. 
 
 The following methods have been implemented for the wishlist to work:
- - addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method, only more simple as this method doesn't need to be transactional.
- - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
+- addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method, only more simple as this method doesn't need to be transactional.
+- getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 
 # Task 3: Additional added queries in endpoint methods
- - getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
- - getConferencesInCity: This method queries all conferences in a certain city.
+- getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
+- getConferencesInCity: This method queries all conferences in a certain city.
 
 # Task 3: Solving a query related problem
 Question: Let’s say that you don't like workshops and you don't like sessions after 7 pm. How would you handle a query for all non-workshop sessions before 7 pm? What is the problem for implementing this query? What ways to solve it did you think of?
