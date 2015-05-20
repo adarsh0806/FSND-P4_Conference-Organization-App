@@ -1,15 +1,16 @@
-Conference Organization Application Using Googles App Engine.
+# Cloud-based API server for a Conference Organization Application using Googles App Engine.
+The API supports user authentication, user profiles, conference information and various manners in which to query the data.
 
-## Products
+# Products
 - [App Engine][1]
 
-## Language
+# Language
 - [Python][2]
 
-## APIs
+# APIs
 - [Google Cloud Endpoints][3]
 
-## Setup Instructions
+# Setup Instructions
 1. Update the value of `application` in `app.yaml` to the app ID you
    have registered in the App Engine admin console and would like to use to host
    your instance of this sample.
@@ -25,18 +26,17 @@ Conference Organization Application Using Googles App Engine.
 7. Deploy your application by typing 'appcfg.py update DIR'. When successful, you can access your application
    by visiting 'https://APPID.appspot.com'.
 
-## Testing Instructions
+# Testing Instructions
 To access the conference application, visit 'https://conference-api.appspot.com'.
 As the added endpoints methods are only usable in the API explorer yet, visit 'https://conference-api.appspot.com/_ah/api/explorer/', click on the conference API and chose the method you want to test. To get a valid websafeConferenceKey, copy it from the url on any conference detail page. To get a valid sessionConferenceKey, copy the websafeKey from the response of the getConferenceSessions-method. 
 
-## Answers and Described Solutions to the Project Tasks
-## Task 1 & 2: Explanation of the design choices for the Sessions, Speaker and Wishlist implementations as added features of the conference application.
+# Task 1 & 2: Explanation of the design choices for Sessions, Speaker and Wishlist.
 The Session kind has been designed with the following properties:
- 	- name: StringProperty and the only required field.
- 	- highlights: Repeated StringProperty as there can be multiple highlights per Session.
- 	- speakers: Repeated KeyProperty of kind Speakers, as there can be multiple Speakers per Session as well.
- 	- duration, startTime and date: TimeProperty respectively DateProperty properties.
- 	- typeOfSession and location: StringProperties.
+- name: StringProperty and the only required field.
+- highlights: Repeated StringProperty as there can be multiple highlights per Session.
+- speakers: Repeated KeyProperty of kind Speakers, as there can be multiple Speakers per Session as well.
+- duration, startTime and date: TimeProperty respectively DateProperty properties.
+- typeOfSession and location: StringProperties.
  As a session is created as a child of a given conference which key is included in the key of the session, it doesn't need to hold a separate conference property as in a relational database. 
 
  A session object is created using the SessionForm Message class, basically consisting of string fields. Only typeOfSession is implemented as an EnumField as there are limited values to chose from. When an existing Session entity is requested, the message field 'websafeKey' contains an urlsafe string which can be easily converted back to the original key to uniquely identify the session.
@@ -63,18 +63,18 @@ The following methods have been implemented for the wishlist to work:
 - addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method, only more simple as this method doesn't need to be transactional.
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 
-## Task 3
-## Additional added queries in endpoint methods
+# Task 3: Additional added queries in endpoint methods
 - getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
 - getConferencesInCity: This method queries all conferences in a certain city.
 
-## Solving a query related problem
+# Task 3: Solving a query related problem
 Question: Let’s say that you don't like workshops and you don't like sessions after 7 pm. How would you handle a query for all non-workshop sessions before 7 pm? What is the problem for implementing this query? What ways to solve it did you think of?
 
 Answer: The query would need to filter using two inequality filterss. First, all sessions '!=' Workshop, second, all sessions <= 7 pm. However, using inequalities for multiple properties is [disallowed in Datastore][7].
 
 Proposed Solutions:
-1. Use only one inequality filter for time and then filter for all type of sessions which are liked using the IN operator on a limited set of the remaining five session types.
+1. Use only one inequality filter for time and then filter for all type of sessions which
+   are liked using the IN operator on a limited set of the remaining five session types.
 2. Use two queries with one inequality filter each and combine the results.
 3. Use only one inequality filter for time and filter out the other property in memory.
 
@@ -90,7 +90,7 @@ As the amount of possible typeOfSession values is very limited, I decided to imp
 
 The whole endpoints method is implemented as 'solutionToQueryProblem'.
 
-## Task 4: Add a Task
+# Task 4: Add a Task
 For this a new task is added to the default taskqueue after a session is created. In the executed method 'CheckSpeakers' of the main.py module, all sessions of the same conference are checked if a speaker holds more than one session at the conference. If this is the case, the speaker gets marked as featured and a new Memcache entry is created (or the existing one is overridden) listing all featured speakers and their session on this conference.
 
 The endpoints method 'getFeaturedSpeaker' takes in a websafeConferenceKey as an argument and returns the respective Memcache entry with the featured speakers and sessions.
