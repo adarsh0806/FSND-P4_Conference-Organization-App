@@ -7,7 +7,7 @@ conference.py -- Udacity conference server-side Python App Engine API;
 $Id: conference.py,v 1.25 2014/05/24 23:42:19 wesc Exp wesc $
 
 created by wesc on 2014 apr 21
-extended by Norbert Stueken on 2015 may 17
+extended by Norbert Stueken on 2015 may 20
 """
 
 __author__ = 'wesc+api@google.com (Wesley Chun)'
@@ -20,7 +20,7 @@ import endpoints
 from protorpc import messages
 from protorpc import message_types
 from protorpc import remote
-
+ 
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
@@ -242,28 +242,27 @@ class ConferenceApi(remote.Service):
         # convert speakers from a list of strings to a list of Speaker entity
         # keys
         if data['speakers']:
-            # query all existing/known speakers
-            qryKnownSpeakers = Speaker.query()
-            # write the names of the known speakers in a list
-            knownSpeakers = []
-            for ks in qryKnownSpeakers:
-                knownSpeakers.append(ks.name)
-            # go through the provided speaker list of the request. When speaker
-            # is unknown, get a new Speaker ID, use it to create a new Speaker
-            # entity and write it to the database. Otherwise, just retrieve the
-            # key.
+            # check for each provided session speaker if he exists already in
+            # the database. If yes, get the key value, if not, create a new
+            # speaker with the provided name as key.
             # NOTE: For simplification, it is assumed that a name uniquely
-            # identifies a speaker.
+            # identifies a speaker and therefore can be set as id as well.
             sessionSpeakers = []
             for speaker in data['speakers']:
-                if speaker not in knownSpeakers:
-                    spk_id = Speaker.allocate_ids(size=1)[0]
-                    spk = Speaker(name=speaker, id=spk_id)
-                    spk_key = spk.put()
-                else:
-                    spk_key = Speaker.query(Speaker.name == speaker).get().key
+                # get_or_insert(key_name, args) transactionally retrieves an
+                # existing entity or creates a new one. This also prevents the
+                # risk of duplicate speaker records when multiple sessions with
+                # the same speaker are created at the same time.
+                # For the key name, the speaker string is formatted in lower
+                # case without whitespaces. To be safe, it should also be
+                # converted to an ascii string in case of special unicode
+                # characters. However, as this is more complicated, its not
+                # been done for this exercise.
+                session_speaker_key = Speaker.get_or_insert(
+                     speaker.lower().strip().replace(" ", "_"),
+                     name=speaker).key
                 # Add Speaker key to the list of sessionSpeakers.
-                sessionSpeakers.append(spk_key)
+                sessionSpeakers.append(session_speaker_key)
             # overwrite data['speakers'] with the new created key list.
             data['speakers'] = sessionSpeakers
 
@@ -409,6 +408,11 @@ class ConferenceApi(remote.Service):
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
                       path='addSessionToWishlist',
                       http_method='POST', name='addSessionToWishlist')
+    # making the function transactional prevents the risk of losing a session
+    # when multiple sessions get added. With @ndb.transaction concurrent writes
+    # to the same entity (profile) are not possible. By default, 3 retries are
+    # made.
+    @ndb.transactional
     def addSessionToWishlist(self, request):
         """ Add a given session to the users Wishlist. """
         onList = None

@@ -60,7 +60,7 @@ The Session kind has been designed with the following properties:
 As the wishlist is only a list of session keys, it doesn't need to be an own kind and can be attached to the user profile as an additional property. Furthermore, the wishlist is open to all conferences and not only the ones which the user is registered to attend. For me, this makes more sense as I could decide to register for a conference based on the sessions in my wishlist. 
 
 The following methods have been implemented for the wishlist to work:
-- addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method, only more simple as this method doesn't need to be transactional.
+- addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method. The method is transactional to prevent the risk of losing a session when multiple calls are made concurrently.
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 
 # Task 3: Additional added queries in endpoint methods
