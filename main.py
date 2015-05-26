@@ -88,8 +88,7 @@ class CheckSpeakers(webapp2.RequestHandler):
                     count, spk_key.get().name)
                 sessionsOfFeatured = confSessions.filter(
                     Session.speakers == spk_key)
-                for sess in sessionsOfFeatured:
-                    featured += "%s, " % (sess.name,)
+                featured += ", ".join(sess.name for sess in sessionsOfFeatured)
             memcache.set(MEMCACHE_CONFERENCE_KEY, featured)
         else:
             # If there are no featured speakers at the conference,
