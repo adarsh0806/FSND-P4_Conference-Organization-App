@@ -76,8 +76,10 @@ class CheckSpeakers(webapp2.RequestHandler):
                             # attach the speaker key to the list of
                             # featured speakers
                             feat_spk_keys.append(cs_spk_key)
-        # set memcache key to the urlsafe key of the conference
-        MEMCACHE_CONFERENCE_KEY = c_key.urlsafe()
+        # set memcache key to the urlsafe key of the conference. Adding prefix
+        # "FEATURED:", so new functionality to be put into memcache won't
+        # collide with existing key.
+        MEMCACHE_CONFERENCE_KEY = "FEATURED:%s" % c_key.urlsafe()
         # If there are featured speakers at the conference,
         # format featured speakers announcement and set it in memcache
         if feat_spk_keys:

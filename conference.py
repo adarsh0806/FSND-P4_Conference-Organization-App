@@ -751,7 +751,13 @@ class ConferenceApi(remote.Service):
                       http_method='GET', name='getFeaturedSpeaker')
     def getFeaturedSpeaker(self, request):
         """Return featured speakers and their sessions from memcache."""
-        MEMCACHE_CONFERENCE_KEY = request.websafeConferenceKey
+        # check if conf exists given websafeConferenceKey
+        wsck = request.websafeConferenceKey
+        conf = ndb.Key(urlsafe=wsck).get()
+        if not conf:
+            raise endpoints.NotFoundException(
+                'No conference found with key: %s' % wsck)
+        MEMCACHE_CONFERENCE_KEY = "FEATURED:%s" % wsck
         return StringMessage(data=memcache.get(
             MEMCACHE_CONFERENCE_KEY) or "No featured speakers.")
 
