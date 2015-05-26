@@ -158,16 +158,16 @@ class ConferenceApi(remote.Service):
                     setattr(sf, field.name, getattr(TypeOfSession, getattr(
                         sess, field.name)))
                 # convert date to date string;
-                elif field.name.endswith('date'):
+                elif field.name == 'date':
                     setattr(sf, field.name, str(getattr(sess, field.name)))
                 # convert startTime to time string;
                 elif field.name.endswith('Time'):
                     setattr(sf, field.name, str(getattr(sess, field.name)))
                 # convert startTime to time string;
-                elif field.name.endswith('duration'):
+                elif field.name == 'duration':
                     setattr(sf, field.name, str(getattr(sess, field.name)))
                 # convert list of Speaker keys to list of strings:
-                elif field.name.endswith('speakers'):
+                elif field.name == 'speakers':
                     setattr(sf, field.name,
                             [str(s.get().name) for s in sess.speakers])
                 # just copy other fields
@@ -269,8 +269,8 @@ class ConferenceApi(remote.Service):
             # overwrite data['speakers'] with the new created key list.
             data['speakers'] = sessionSpeakers
 
-        # make Conference Key from websafeConferenceKey
-        c_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        # get Conference Key
+        c_key = conf.key
         # allocate new Session ID with Conference key as parent
         s_id = Session.allocate_ids(size=1, parent=c_key)[0]
         # create a key for for the new Session with conference key as parent
