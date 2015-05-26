@@ -338,14 +338,14 @@ class ConferenceApi(remote.Service):
         return spk_key
 
     @endpoints.method(SESSION_POST_REQUEST, SessionForm,
-                      path='session/{websafeConferenceKey}',
+                      path='conference/{websafeConferenceKey}/sessions',
                       http_method='POST', name='createSession')
     def createSession(self, request):
         """ Creates a new session for a conference."""
         return self._createSessionObject(request)
 
     @endpoints.method(SESSION_GET_REQUEST, SessionForms,
-                      path='getConferenceSessions/{websafeConferenceKey}',
+                      path='conference/{websafeConferenceKey}/sessions',
                       http_method='GET', name='getConferenceSessions')
     def getConferenceSessions(self, request):
         """Given a conference, return all sessions."""
@@ -358,8 +358,8 @@ class ConferenceApi(remote.Service):
 
     @endpoints.method(
         SESSION_BY_TYPE_GET_REQUEST, SessionForms,
-        path='getConferenceSessionsByType/{websafeConferenceKey}',
-        http_method='POST', name='getConferenceSessionsByType')
+        path='conference/{websafeConferenceKey}/sessions/byType',
+        http_method='GET', name='getConferenceSessionsByType')
     def getConferenceSessionsByType(self, request):
         """ Given a conference, return all sessions of a specified type."""
         sessions = self._getConferenceSessions(request)
@@ -373,7 +373,7 @@ class ConferenceApi(remote.Service):
         )
 
     @endpoints.method(SpeakerForm, SessionForms,
-                      path='getSessionsBySpeaker',
+                      path='sessions/bySpeaker',
                       http_method='GET', name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
         """ Returns all sessions given by a particular speaker."""
@@ -389,8 +389,8 @@ class ConferenceApi(remote.Service):
 
     @endpoints.method(
         SESSION_BY_SPK_AND_CONF_GET_REQUEST, SessionForms,
-        path='getConferenceSessionsBySpeaker',
-        http_method='POST', name='getConferenceSessionsBySpeaker')
+        path='conference/{websafeConferenceKey}/sessions/bySpeaker',
+        http_method='GET', name='getConferenceSessionsBySpeaker')
     def getConferenceSessionsBySpeaker(self, request):
         """ Returns all conference sessions of a given speaker."""
         # get all sessions of requested conference
@@ -406,7 +406,7 @@ class ConferenceApi(remote.Service):
         )
 
     @endpoints.method(WISHLIST_POST_REQUEST, BooleanMessage,
-                      path='addSessionToWishlist',
+                      path='wishlist',
                       http_method='POST', name='addSessionToWishlist')
     # making the function transactional prevents the risk of losing a session
     # when multiple sessions get added. With @ndb.transaction concurrent writes
@@ -440,7 +440,7 @@ class ConferenceApi(remote.Service):
         return BooleanMessage(data=onList)
 
     @endpoints.method(message_types.VoidMessage, SessionForms,
-                      path='getSessionsInWishlist',
+                      path='wishlist',
                       http_method='GET', name='getSessionsInWishlist')
     def getSessionsInWishlist(self, request):
         """Get list of sessions that user has put in his wishlist."""
@@ -629,7 +629,7 @@ class ConferenceApi(remote.Service):
         return self._copyConferenceToForm(conf, getattr(prof, 'displayName'))
 
     @endpoints.method(message_types.VoidMessage, ConferenceForms,
-                      path='getConferencesCreated', http_method='POST',
+                      path='conference/byUser', http_method='POST',
                       name='getConferencesCreated')
     def getConferencesCreated(self, request):
         """Return conferences created by user."""
@@ -728,8 +728,8 @@ class ConferenceApi(remote.Service):
                                conferences])
 
     @endpoints.method(CONF_IN_CITY_REQUEST, ConferenceForms,
-                      path='getConferencesInCity',
-                      http_method='POST', name='getConferencesInCity')
+                      path='conference/byCity/{city}',
+                      http_method='GET', name='getConferencesInCity')
     def getConferencesInCity(self, request):
         """ Returns all conferences in a certain city."""
         # check if city name is given
@@ -747,7 +747,7 @@ class ConferenceApi(remote.Service):
         )
 
     @endpoints.method(CONF_GET_REQUEST, StringMessage,
-                      path='conference/featured/get',
+                      path='conference/featured',
                       http_method='GET', name='getFeaturedSpeaker')
     def getFeaturedSpeaker(self, request):
         """Return featured speakers and their sessions from memcache."""
