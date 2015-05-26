@@ -175,6 +175,8 @@ class ConferenceApi(remote.Service):
                     setattr(sf, field.name, getattr(sess, field.name))
             elif field.name == "websafeKey":
                 setattr(sf, field.name, sess.key.urlsafe())
+            elif field.name == "websafeConfKey":
+                setattr(sf, field.name, sess.key.parent().urlsafe())
         sf.check_initialized()
         return sf
 
@@ -215,6 +217,7 @@ class ConferenceApi(remote.Service):
         data = {field.name: getattr(request, field.name) for field in
                 request.all_fields()}
         del data['websafeKey']
+        del data['websafeConfKey']
         del data['websafeConferenceKey']
 
         # add default values for those missing (both data model & outbound
@@ -390,7 +393,7 @@ class ConferenceApi(remote.Service):
     @endpoints.method(
         SESSION_BY_SPK_AND_CONF_GET_REQUEST, SessionForms,
         path='conference/{websafeConferenceKey}/sessions/bySpeaker',
-        http_method='GET', name='getConferenceSessionsBySpeaker')
+        http_method='POST', name='getConferenceSessionsBySpeaker')
     def getConferenceSessionsBySpeaker(self, request):
         """ Returns all conference sessions of a given speaker."""
         # get all sessions of requested conference

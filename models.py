@@ -134,6 +134,7 @@ class SessionForm(messages.Message):
     # The websafeKey contains the info of the entity and the parent and can
     # be used to fully reconstitute the full id
     websafeKey    = messages.StringField(9)
+    websafeConfKey = messages.StringField(10)
 
 
 class SessionForms(messages.Message):
