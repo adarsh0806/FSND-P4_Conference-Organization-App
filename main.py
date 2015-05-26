@@ -7,22 +7,35 @@ main.py -- Udacity conference server-side Python App Engine
 $Id$
 
 created by wesc on 2014 may 24
-extended by Norbert Stueken on 2015 may 20
+extended by Norbert Stueken on 2015 may 20 (v1.1)
+updated by Norbert Stueken after feedback from Helmuth Breitenfellner on 2015
+may 26 (v1.2)
 
 """
 
-__author__ = 'wesc+api@google.com (Wesley Chun)'
-__author__ = 'norbert.stueken@gmail.com'
-
+# built-in modules
 import webapp2
+# third-party modules
 from google.appengine.api import app_identity
 from google.appengine.api import mail
-from conference import ConferenceApi
-
-from models import Session
-from models import Speaker
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
+# own modules
+from conference import ConferenceApi
+from models import Session
+from models import Speaker
+
+# authorship information
+__authors__ = "Wesley Chun, Norbert Stueken"
+__copyright__ = "Copyright 2015"
+__credits__ = ["Wesley Chun, Norbert Stueken, Helmuth Breitenfellner at \
+Udacity"]
+__license__ = "GPL"
+__version__ = "1.2"
+__maintainer__ = "Norbert Stueken"
+__email__ = "wesc+api@google.com (Wesley Chun), norbert.stueken@gmail.com \
+(Norbert Stueken)"
+__status__ = "Development"
 
 
 class SetAnnouncementHandler(webapp2.RequestHandler):

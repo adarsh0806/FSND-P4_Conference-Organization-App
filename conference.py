@@ -7,24 +7,22 @@ conference.py -- Udacity conference server-side Python App Engine API;
 $Id: conference.py,v 1.25 2014/05/24 23:42:19 wesc Exp wesc $
 
 created by wesc on 2014 apr 21
-extended by Norbert Stueken on 2015 may 20
+extended by Norbert Stueken on 2015 may 20 (v1.1)
+updated by Norbert Stueken after feedback from Helmuth Breitenfellner on 2015
+may 26 (v1.2)
 """
 
-__author__ = 'wesc+api@google.com (Wesley Chun)'
-__author__ = 'norbert.stueken@gmail.com'
-
-
+# built-in modules
 from datetime import datetime
-
+# third-party modules
 import endpoints
 from protorpc import messages
 from protorpc import message_types
 from protorpc import remote
- 
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
-
+# own modules
 from models import Profile
 from models import ProfileMiniForm
 from models import ProfileForm
@@ -43,13 +41,23 @@ from models import TypeOfSession
 from models import BooleanMessage
 from models import ConflictException
 from models import StringMessage
-
 from settings import WEB_CLIENT_ID
 from settings import ANDROID_CLIENT_ID
 from settings import IOS_CLIENT_ID
 from settings import ANDROID_AUDIENCE
-
 from utils import getUserId
+
+# authorship information
+__authors__ = "Wesley Chun, Norbert Stueken"
+__copyright__ = "Copyright 2015"
+__credits__ = ["Wesley Chun, Norbert Stueken, Helmuth Breitenfellner at \
+Udacity"]
+__license__ = "GPL"
+__version__ = "1.2"
+__maintainer__ = "Norbert Stueken"
+__email__ = "wesc+api@google.com (Wesley Chun), norbert.stueken@gmail.com \
+(Norbert Stueken)"
+__status__ = "Development"
 
 EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -135,7 +143,7 @@ SESSION_BY_SPK_AND_CONF_GET_REQUEST = endpoints.ResourceContainer(
                allowed_client_ids=[WEB_CLIENT_ID, API_EXPLORER_CLIENT_ID,
                ANDROID_CLIENT_ID, IOS_CLIENT_ID], scopes=[EMAIL_SCOPE])
 class ConferenceApi(remote.Service):
-    """Conference API v1.1"""
+    """Conference API v1.2"""
 
 
 # - - - Session  objects - - - - - - - - - - - - - - - - - -

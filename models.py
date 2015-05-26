@@ -7,18 +7,29 @@ Udacity conference server-side Python App Engine data & ProtoRPC models
 $Id: models.py,v 1.1 2014/05/24 22:01:10 wesc Exp $
 
 created/forked from conferences.py by wesc on 2014 may 24
-extended by Norbert Stueken on 2015 may 20
-
+extended by Norbert Stueken on 2015 may 20 (v1.1)
+updated by Norbert Stueken after feedback from Helmuth Breitenfellner on 2015
+may 26 (v1.2)
 """
 
-__author__ = 'wesc+api@google.com (Wesley Chun)'
-__author__ = 'norbert.stueken@gmail.com'
-
+# built-in modules
 import httplib
+# third-party modules
 import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
-# from google.appengine.ext.ndb import msgprop
+
+# authorship information
+__authors__ = "Wesley Chun, Norbert Stueken"
+__copyright__ = "Copyright 2015"
+__credits__ = ["Wesley Chun, Norbert Stueken, Helmuth Breitenfellner at \
+Udacity"]
+__license__ = "GPL"
+__version__ = "1.2"
+__maintainer__ = "Norbert Stueken"
+__email__ = "wesc+api@google.com (Wesley Chun), norbert.stueken@gmail.com \
+(Norbert Stueken)"
+__status__ = "Development"
 
 
 class ConflictException(endpoints.ServiceException):
