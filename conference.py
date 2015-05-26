@@ -277,16 +277,12 @@ class ConferenceApi(remote.Service):
         s_key = ndb.Key(Session, s_id, parent=c_key)
         # add key into dictionary
         data['key'] = s_key
-
         # create Session
         Session(**data).put()
         # get session to copy it back to the form as return
         sess = s_key.get()
-
-        # convert session key into an urlsafe string
-        s_key_str = s_key.urlsafe()
         # add task to queue to check the speakers of the conference
-        taskqueue.add(params={'s_key_str': s_key_str},
+        taskqueue.add(params={'c_key_str': c_key.urlsafe()},
                       url='/tasks/check_speakers')
         return self._copySessionToForm(sess)
 

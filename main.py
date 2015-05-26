@@ -49,12 +49,9 @@ class SendConfirmationEmailHandler(webapp2.RequestHandler):
 
 class CheckSpeakers(webapp2.RequestHandler):
     def post(self):
-        """Check if there is more than one session by the Speakers."""
-        s_key_str = self.request.get('s_key_str')
-        # convert the urlsafe key string to the session key
-        s_key = ndb.Key(urlsafe=s_key_str)
-        # get the conference key
-        c_key = s_key.parent()
+        """Check if there are more conference sessions by the Speakers."""
+        # convert the urlsafe key string to the conference key
+        c_key = ndb.Key(urlsafe=self.request.get('c_key_str'))
         # get all sessions of the conference
         confSessions = Session.query(ancestor=c_key)
         # get all speakers
