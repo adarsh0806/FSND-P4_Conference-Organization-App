@@ -64,35 +64,38 @@ The following methods have been implemented for the wishlist to work:
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
 - getConferenceSessionsInWishlist: Similar to getSessionsInWishlist, but only gets the wishlist sessions for a given conference.
 
-- Added 20150603: To test the wishlist methods get a sessionConferenceKey (described in Testing Instructions above) and paste it in the respective request field. Also make sure your are logged in as this method requires authorization. If the session key exists and the session is not already on your wishlist, the response should be
-   200 OK
-   {
-    "data": true
-   }
+NOTE: To test the wishlist methods get a sessionConferenceKey (described in Testing Instructions above) and paste it in the respective request field. Also make sure your are logged in as this method requires authorization. If the session key exists and the session is not already on your wishlist, the response should be:
+
+	200 OK
+	{
+	"data": true
+	}
+
 Then call the method getSessionsInWishlist or getConferenceSessionsInWishlist. You response should include the details of the added session, e.g.
-   200 OK 
-   {
-    "items": [
-     {
-      "date": "1900-01-01",
-      "duration": "00:00:00",
-      "highlights": [
-       "Default",
-       "Highlight"
-      ],
-      "location": "Default Location",
-      "name": "S02",
-      "speakers": [
-       "Henry",
-       "Loriot"
-      ],
-      "startTime": "10:00:00",
-      "typeOfSession": "NOT_SPECIFIED",
-      "websafeConfKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyNgsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDA",
-      "websafeKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyQwsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDAsSB1Nlc3Npb24YAww"
-     }
-    ]
-   }
+
+	200 OK 
+	{
+	"items": [
+	{
+	"date": "1900-01-01",
+	"duration": "00:00:00",
+	"highlights": [
+	"Default",
+	"Highlight"
+	],
+	"location": "Default Location",
+	"name": "S02",
+	"speakers": [
+	"Henry",
+	"Loriot"
+	],
+	"startTime": "10:00:00",
+	"typeOfSession": "NOT_SPECIFIED",
+	"websafeConfKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyNgsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDA",
+	"websafeKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyQwsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDAsSB1Nlc3Npb24YAww"
+	}
+	]
+	}
 
 # Task 3: Additional added queries in endpoint methods
 - getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.
