@@ -57,11 +57,42 @@ To make use of the new Session and Speaker kinds, the following endpoints and pr
 - _getConferenceSessions: Given a conference, return all its sessions. Implemented as separate method as used by multiple endpoints methods (getConferenceSessions and getConferenceSessionsByType) to limit redundancy.
 - _getSpeakerKey: Returns the key for a requested speaker, when he exists. Implemented as separate method as used by multiple endpoints mehtods (getSessionsBySpeaker and getConferenceSessionsBySpeaker (see additional queries/methods below)).
 
-As the wishlist is only a list of session keys, it doesn't need to be an own kind and can be attached to the user profile as an additional property. Furthermore, the wishlist is open to all conferences and not only the ones which the user is registered to attend. For me, this makes more sense as I could decgide to register for a conference based on the sessions in my wishlist. 
+As the wishlist is only a list of session keys, it doesn't need to be an own kind and can be attached to the user profile as an additional property. Furthermore, the wishlist is open to all conferences and not only the ones which the user is registered to attend. For me, this makes more sense as I could decide to register for a conference based on the sessions in my wishlist. 
 
 The following methods have been implemented for the wishlist to work:
 - addSessionToWishlist: To add a session to the wishlist, the websafeKey of the session (probably retrieved out of a hidden form element on the conference details page) is used as the input argument. Furthermore, the method is implemented similar to the _conferenceRegistration method. The method is transactional to prevent the risk of losing a session when multiple calls are made concurrently.
 - getSessionsInWishlist: Retrieves a list of sessions which have been put on the users wishlist across all conferences. This method is implemented very similar to the method 'getConferencesToAttend'.
+- getConferenceSessionsInWishlist: Similar to getSessionsInWishlist, but only gets the wishlist sessions for a given conference.
+
+- Added 20150603: To test the wishlist methods get a sessionConferenceKey (described in Testing Instructions above) and paste it in the respective request field. Also make sure your are logged in as this method requires authorization. If the session key exists and the session is not already on your wishlist, the response should be
+   200 OK
+   {
+    "data": true
+   }
+Then call the method getSessionsInWishlist or getConferenceSessionsInWishlist. You response should include the details of the added session, e.g.
+   200 OK 
+   {
+    "items": [
+     {
+      "date": "1900-01-01",
+      "duration": "00:00:00",
+      "highlights": [
+       "Default",
+       "Highlight"
+      ],
+      "location": "Default Location",
+      "name": "S02",
+      "speakers": [
+       "Henry",
+       "Loriot"
+      ],
+      "startTime": "10:00:00",
+      "typeOfSession": "NOT_SPECIFIED",
+      "websafeConfKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyNgsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDA",
+      "websafeKey": "ahJkZXZ-Y29uZmVyZW5jZS1hcGlyQwsSB1Byb2ZpbGUiGW5vcmJlcnQuc3R1ZWtlbkBnbWFpbC5jb20MCxIKQ29uZmVyZW5jZRgBDAsSB1Nlc3Npb24YAww"
+     }
+    ]
+   }
 
 # Task 3: Additional added queries in endpoint methods
 - getConferenceSessionsBySpeaker: This method queries all sessions of a conference and filters it by a given speaker. This can be useful for larger conferences.

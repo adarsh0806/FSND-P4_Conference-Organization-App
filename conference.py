@@ -126,6 +126,11 @@ SESSION_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+WISHLIST_GET_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    websafeConferenceKey=messages.StringField(1)
+)
+
 WISHLIST_POST_REQUEST = endpoints.ResourceContainer(
     message_types.VoidMessage,
     websafeSessionKey=messages.StringField(1)
@@ -452,13 +457,44 @@ class ConferenceApi(remote.Service):
     def getSessionsInWishlist(self, request):
         """Get list of sessions that user has put in his wishlist."""
         prof = self._getProfileFromUser()  # get user profile
+
         # get sessionsKeysOnWishlist from profile.
         sess_keys = [ndb.Key(urlsafe=wssk) for wssk in
                      prof.sessionsKeysOnWishlist]
+
         # fetch sessions from datastore.
         # Use of get_multi(array_of_keys) to fetch all keys at once instead of
         # fetching them one by one.
         sessions = ndb.get_multi(sess_keys)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(items=[self._copySessionToForm(sess) for sess in
+                            sessions])
+
+    @endpoints.method(WISHLIST_GET_REQUEST, SessionForms,
+                      path='conference/{websafeConferenceKey}/wishlist',
+                      http_method='GET',
+                      name='getConferenceSessionsInWishlist')
+    def getConferenceSessionsInWishlist(self, request):
+        """Get sessions that user has put in his wishlist for a conference."""
+        prof = self._getProfileFromUser()  # get user profile
+
+        # get sessionsKeysOnWishlist from profile.
+        sess_keys = [ndb.Key(urlsafe=wssk) for wssk in
+                     prof.sessionsKeysOnWishlist]
+
+        # convert websafeKey to conference key
+        conf_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        # only add sessions of the requested conference
+        confSess_keys = []
+        for sess_key in sess_keys:
+            if sess_key.parent() == conf_key:
+                confSess_keys.append(sess_key)
+
+        # fetch sessions from datastore.
+        # Use of get_multi(array_of_keys) to fetch all keys at once instead of
+        # fetching them one by one.
+        sessions = ndb.get_multi(confSess_keys)
 
         # return set of SessionForm objects per Session
         return SessionForms(items=[self._copySessionToForm(sess) for sess in
