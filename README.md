@@ -1,6 +1,8 @@
 # API for a Conference Organization Application
 A Cloud-based API server for a Conference Organization web app using Googles App Engine that supports user authentication, user profiles, conference information and various manners in which to query the data.
 
+![](http://image-store.slidesharecdn.com/42ec0bda-326a-4e95-b558-86ed5952b48d-large.jpeg)
+
 **Note:** This is a solution to project 4 of the [Udacity Full Stack Web Developer Nanodegree][1] based on the course [Developing Scalable Apps in Python (ud858)][2]. The solution is graded with "Exceeds Specifications".
 
 ## Products
